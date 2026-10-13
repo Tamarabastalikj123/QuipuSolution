@@ -14,4 +14,9 @@
     <ProjectReference Include="..\QuipuSolution.Domain\QuipuSolution.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Exceptions\" />
+    <Folder Include="Service\Authors\" />
+  </ItemGroup>
+
 </Project>
