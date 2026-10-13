@@ -1,0 +1,6 @@
+@QuipuSolution_HostAddress = http://localhost:5179
+
+GET {{QuipuSolution_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
