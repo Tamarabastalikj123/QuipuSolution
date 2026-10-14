@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using QuipuSolution.Application.Contracts.Services;
 using QuipuSolution.Application.Dto.Books;
 
 namespace QuipuSolution.Controllers
 {
     [ApiController]
-    [Route("api/books")]
+    [Route("api/book")]
+    [Authorize(Policy = "BookApiScope")]
     public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
