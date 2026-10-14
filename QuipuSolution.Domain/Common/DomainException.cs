@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace QuipuSolution.Domain.Common
+﻿namespace QuipuSolution.Domain.Common
 {
-    public class DomainException :Exception
+    /// <summary>
+    /// Thrown when a business rule of a domain entity is violated.
+    /// </summary>
+    public class DomainException : Exception
     {
         public DomainException(string message) : base(message) { }
     }

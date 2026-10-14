@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using QuipuSolution.Domain.Entities;
 
-namespace QuipuSolution.Infrastructure.Configurations
+namespace QuipuSolution.Infrastructure.Persistence.Configurations
 {
-    public class AuthorConfiguration :IEntityTypeConfiguration<Author>
+    public class AuthorConfiguration : IEntityTypeConfiguration<Author>
     {
         public void Configure(EntityTypeBuilder<Author> builder)
         {
@@ -17,11 +17,12 @@ namespace QuipuSolution.Infrastructure.Configurations
                 .IsRequired()
                 .HasMaxLength(Author.NameMaxLength);
 
+            // The API only manages books, so authors are seeded
             builder.HasData(
-          new { AuthorId = 1, Name = "Fyodor Dostoevsky" },
-          new { AuthorId = 2, Name = "Katerina Shoshko" },
-          new { AuthorId = 3, Name = "Frida Mcfadden" },
-          new { AuthorId = 4, Name = "Chris Carter" });
+                new { AuthorId = 1, Name = "Fyodor Dostoevsky" },
+                new { AuthorId = 2, Name = "Katerina Shoshko" },
+                new { AuthorId = 3, Name = "Frida Mcfadden" },
+                new { AuthorId = 4, Name = "Chris Carter" });
         }
     }
 }

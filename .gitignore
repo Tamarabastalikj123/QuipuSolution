@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Local Docker Compose secrets (see .env.example)
+.env
+
+# Duende IdentityServer signing keys (private keys - never commit)
+QuipuSolution.IdentityServer/keys/
+
 # User-specific files
 *.rsuser
 *.suo

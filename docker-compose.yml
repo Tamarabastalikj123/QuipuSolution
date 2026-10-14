@@ -1,0 +1,82 @@
+# Runs the whole solution: SQL Server, IdentityServer and the API.
+#
+#   docker compose up --build
+#
+#   API / Swagger:   http://localhost:5100/swagger
+#   IdentityServer:  http://localhost:5101
+#
+# Values in ${...} can be overridden in a .env file (see .env.example).
+# The defaults are for local demo use only.
+
+name: quipu
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SQL_SA_PASSWORD:-Quipu_Local_Pass1!}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  identityserver:
+    build:
+      context: .
+      dockerfile: QuipuSolution.IdentityServer/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # The browser reaches IdentityServer on localhost:5101, the API on identityserver:8080 - tokens must carry one fixed issuer
+      AuthServer__IssuerUri: http://localhost:5101
+      AuthServer__ClientCredentialsClientSecret: ${CLIENT_SECRET:-quipu-secret}
+      AuthServer__SwaggerOrigins__0: http://localhost:5100
+      # Demo users (alice, bob) - a real deployment uses a proper user store
+      AuthServer__EnableTestUsers: "true"
+      AuthServer__DataProtectionKeysPath: /app/keys/dataprotection
+    ports:
+      - "5101:8080"
+    volumes:
+      - identityserver-keys:/app/keys
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+  api:
+    build:
+      context: .
+      dockerfile: QuipuSolution/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=QuipuDB;User Id=sa;Password=${SQL_SA_PASSWORD:-Quipu_Local_Pass1!};TrustServerCertificate=True
+      IdentityServer__Authority: http://identityserver:8080
+      IdentityServer__PublicAuthority: http://localhost:5101
+      IdentityServer__RequireHttpsMetadata: "false"
+      Database__ApplyMigrationsOnStartup: "true"
+      Swagger__Enabled: "true"
+    ports:
+      - "5100:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      identityserver:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+
+volumes:
+  sqlserver-data:
+  identityserver-keys:

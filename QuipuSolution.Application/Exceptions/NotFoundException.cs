@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace QuipuSolution.Application.Exceptions
+﻿namespace QuipuSolution.Application.Exceptions
 {
+    /// <summary>
+    /// Thrown when a requested resource does not exist.
+    /// </summary>
     public class NotFoundException : Exception
     {
         public NotFoundException(string message) : base(message) { }

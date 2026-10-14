@@ -1,6 +1,47 @@
-@QuipuSolution_HostAddress = http://localhost:5179
+@api = https://localhost:7107
+@identityServer = https://localhost:5001
 
-GET {{QuipuSolution_HostAddress}}/weatherforecast/
-Accept: application/json
+### 1. Get an access token (client credentials) - copy "access_token" from the response into @token below
+POST {{identityServer}}/connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=client_credentials&client_id=quipu.client&client_secret=quipu-secret&scope=book.api
 
 ###
+@token = paste-access-token-here
+
+### Get all books
+GET {{api}}/api/book
+Authorization: Bearer {{token}}
+
+### Get a book
+GET {{api}}/api/book/1
+Authorization: Bearer {{token}}
+
+### Create a book
+POST {{api}}/api/book
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "The Idiot",
+  "subTitle": null,
+  "authorId": 1
+}
+
+### Update a book
+PUT {{api}}/api/book/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Crime and Punishment",
+  "subTitle": "Updated subtitle",
+  "authorId": 1
+}
+
+### Delete a book
+DELETE {{api}}/api/book/1
+Authorization: Bearer {{token}}
+
+### Search requires a user token (implicit flow) - use Swagger's "Authorize" (implicit) to get one

@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using QuipuSolution.Domain.Entities;
 
-namespace QuipuSolution.Infrastructure.Configurations
+namespace QuipuSolution.Infrastructure.Persistence.Configurations
 {
     public class BookConfiguration : IEntityTypeConfiguration<Book>
     {
@@ -25,10 +25,10 @@ namespace QuipuSolution.Infrastructure.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasData(
-    new { BookId = 1, Title = "Crime and Punishment", SubTitle = (string?)null, AuthorId = 1 },
-    new { BookId = 2, Title = "The Brothers Karamazov", SubTitle = (string?)null, AuthorId = 1 },
-    new { BookId = 3, Title = "The Housemaid", SubTitle = (string?)null, AuthorId = 3 },
-    new { BookId = 4, Title = "The Crucifix Killer", SubTitle = "A Robert Hunter Thriller", AuthorId = 4 });
+                new { BookId = 1, Title = "Crime and Punishment", SubTitle = (string?)null, AuthorId = 1 },
+                new { BookId = 2, Title = "The Brothers Karamazov", SubTitle = (string?)null, AuthorId = 1 },
+                new { BookId = 3, Title = "The Housemaid", SubTitle = (string?)null, AuthorId = 3 },
+                new { BookId = 4, Title = "The Crucifix Killer", SubTitle = "A Robert Hunter Thriller", AuthorId = 4 });
         }
     }
 }

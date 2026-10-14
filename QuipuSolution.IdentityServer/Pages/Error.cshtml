@@ -1,0 +1,18 @@
+@page
+@model ErrorModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<h1>Sorry, there was an error</h1>
+
+@if (Model.Error is not null)
+{
+    <div class="error">
+        <strong>@Model.Error</strong>
+        @if (Model.Description is not null)
+        {
+            <div>@Model.Description</div>
+        }
+    </div>
+}

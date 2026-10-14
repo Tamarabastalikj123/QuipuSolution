@@ -1,9 +1,4 @@
 ﻿using QuipuSolution.Domain.Common;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace QuipuSolution.Domain.Entities
 {
@@ -19,7 +14,7 @@ namespace QuipuSolution.Domain.Entities
         public int AuthorId { get; private set; }
         public Author Author { get; private set; } = null!;
 
-        private Book() { }
+        private Book() { } // EF Core
 
         public Book(string title, string? subTitle, Author author)
         {

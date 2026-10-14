@@ -1,11 +1,11 @@
-﻿using QuipuSolution.Application.Contracts.Repository.Authors;
+﻿using Microsoft.EntityFrameworkCore;
+using QuipuSolution.Application.Contracts.Repository.Authors;
 using QuipuSolution.Domain.Entities;
 using QuipuSolution.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
 
 namespace QuipuSolution.Infrastructure.Repositories
 {
-    public class AuthorRepository :IAuthorRepository
+    public class AuthorRepository : IAuthorRepository
     {
         private readonly QuipuSolutionDbContext _context;
 
@@ -19,6 +19,5 @@ namespace QuipuSolution.Infrastructure.Repositories
             return await _context.Authors
                 .FirstOrDefaultAsync(a => a.AuthorId == authorId, cancellationToken);
         }
-
     }
 }

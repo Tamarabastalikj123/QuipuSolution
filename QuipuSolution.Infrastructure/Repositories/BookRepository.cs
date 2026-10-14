@@ -44,10 +44,41 @@ namespace QuipuSolution.Infrastructure.Repositories
         {
             _context.Books.Remove(book);
             await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<(List<Book> Items, int TotalCount)> SearchAsync(
+            string? title,
+            string? author,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            var query = _context.Books
+                .AsNoTracking()
+                .Include(b => b.Author)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(title))
             {
-                _context.Books.Remove(book);
-                await _context.SaveChangesAsync(cancellationToken);
+                var titleFilter = title.Trim();
+                query = query.Where(b => b.Title.Contains(titleFilter));
             }
+
+            if (!string.IsNullOrWhiteSpace(author))
+            {
+                var authorFilter = author.Trim();
+                query = query.Where(b => b.Author.Name.Contains(authorFilter));
+            }
+
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var items = await query
+                .OrderBy(b => b.BookId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return (items, totalCount);
         }
     }
 }

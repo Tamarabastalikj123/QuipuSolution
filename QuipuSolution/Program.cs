@@ -1,113 +1,62 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using QuipuSolution.Application.Contracts.Repository.Authors;
-using QuipuSolution.Application.Contracts.Repository.Books;
-using QuipuSolution.Application.Contracts.Services;
-using QuipuSolution.Application.Service.Books;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using QuipuSolution.Application;
+using QuipuSolution.Configuration;
 using QuipuSolution.ExceptionHandling;
-using QuipuSolution.Infrastructure.Persistence;
-using QuipuSolution.Infrastructure.Repositories;
+using QuipuSolution.Extensions;
+using QuipuSolution.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Authentication - validate JWT tokens issued by IdentityServer
-var identityServer = builder.Configuration.GetSection("IdentityServer");
-var authority = identityServer["Authority"]!;
-var scope = identityServer["Scope"]!;
+var identityServerSettings = builder.Configuration.GetIdentityServerSettings();
+var swaggerEnabled = builder.Configuration.GetValue<bool>("Swagger:Enabled");
 
-// Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-
-builder.Services.AddSwaggerGen(options =>
-{
-    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
-    {
-        Type = SecuritySchemeType.OAuth2,
-        Flows = new OpenApiOAuthFlows
-        {
-            ClientCredentials = new OpenApiOAuthFlow
-            {
-                TokenUrl = new Uri($"{authority}/connect/token"),
-                Scopes = new Dictionary<string, string>
-                {
-                    [scope] = "Access to the Books API"
-                }
-            }
-        }
-    });
-
-    // Send the token with every request
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "oauth2"
-                }
-            },
-            new[] { scope }
-        }
-    });
-});
-builder.Services.AddDbContext<QuipuSolutionDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<IBookService, BookService>();
-builder.Services.AddScoped<IBookRepository, BookRepository>();
-builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
-
-builder.Services.AddExceptionHandler<ExceptionHandler>();
 builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ExceptionHandler>();
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = authority;                                 
-        options.Audience = identityServer["Audience"];
-    });
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
-// Authorization - the token must contain the "book.api" scope
-builder.Services.AddAuthorization(options =>
+builder.Services.AddApiAuthentication(identityServerSettings);
+builder.Services.AddApiRateLimiting(builder.Configuration);
+
+if (swaggerEnabled)
 {
-    options.AddPolicy("BookApiScope", policy =>
-    {
-        policy.RequireAuthenticatedUser();
-        policy.RequireClaim("scope", scope);                              
-    });
-});
+    builder.Services.AddApiSwagger(identityServerSettings);
+}
 
 var app = builder.Build();
 
-using (var serviceScope = app.Services.CreateScope())
+// In production, migrations are a deployment step - enable this only for local/demo environments
+if (app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
 {
-    var db = serviceScope.ServiceProvider.GetRequiredService<QuipuSolutionDbContext>();
-    db.Database.Migrate();
+    await app.Services.ApplyMigrationsAsync();
 }
 
 app.UseExceptionHandler();
-//app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>                                        
-    {
-        options.OAuthClientId("quipu.client");
-    });
-    app.UseSwaggerUI();
+    app.UseHsts();
+}
+
+app.UseSecurityHeaders();
+
+if (swaggerEnabled)
+{
+    app.UseApiSwagger();
 }
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
-app.MapControllers();
+// Liveness: the process is running. Readiness: the database is reachable.
+app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
+app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check => check.Tags.Contains(QuipuSolution.Infrastructure.DependencyInjection.ReadinessTag) });
+
+app.MapControllers().RequireRateLimiting(RateLimitingExtensions.ApiPolicy);
 
 app.Run();
