@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: >
+          dotnet test --configuration Release --no-build
+          --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults
+
+  docker:
+    name: Docker Compose smoke test
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start containers
+        run: docker compose up --build --detach --wait --wait-timeout 300
+
+      - name: Smoke test
+        run: |
+          curl --fail --silent http://localhost:5100/health/ready
+          echo
+          token=$(curl --fail --silent -X POST http://localhost:5101/connect/token \
+            -d "grant_type=client_credentials&client_id=quipu.client&client_secret=quipu-secret&scope=book.api" | jq -r .access_token)
+          curl --fail --silent http://localhost:5100/api/book -H "Authorization: Bearer $token" | jq 'length'
+          status=$(curl --silent --output /dev/null --write-out "%{http_code}" http://localhost:5100/api/book)
+          test "$status" = "401"
+
+      - name: Container logs
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop containers
+        if: always()
+        run: docker compose down --volumes

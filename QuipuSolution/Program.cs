@@ -60,3 +60,6 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions { Predicate = check 
 app.MapControllers().RequireRateLimiting(RateLimitingExtensions.ApiPolicy);
 
 app.Run();
+
+// Makes the entry point visible to the integration tests (WebApplicationFactory<Program>)
+public partial class Program { }
