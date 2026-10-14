@@ -23,6 +23,12 @@ namespace QuipuSolution.Infrastructure.Configurations
                 .WithMany()
                 .HasForeignKey(b => b.AuthorId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasData(
+    new { BookId = 1, Title = "Crime and Punishment", SubTitle = (string?)null, AuthorId = 1 },
+    new { BookId = 2, Title = "The Brothers Karamazov", SubTitle = (string?)null, AuthorId = 1 },
+    new { BookId = 3, Title = "The Housemaid", SubTitle = (string?)null, AuthorId = 3 },
+    new { BookId = 4, Title = "The Crucifix Killer", SubTitle = "A Robert Hunter Thriller", AuthorId = 4 });
         }
     }
 }

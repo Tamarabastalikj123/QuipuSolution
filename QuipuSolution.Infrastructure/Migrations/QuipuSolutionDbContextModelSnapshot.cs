@@ -16,7 +16,7 @@ namespace QuipuSolution.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -85,6 +85,33 @@ namespace QuipuSolution.Infrastructure.Migrations
                     b.HasIndex("AuthorId");
 
                     b.ToTable("Books", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            BookId = 1,
+                            AuthorId = 1,
+                            Title = "Crime and Punishment"
+                        },
+                        new
+                        {
+                            BookId = 2,
+                            AuthorId = 1,
+                            Title = "The Brothers Karamazov"
+                        },
+                        new
+                        {
+                            BookId = 3,
+                            AuthorId = 3,
+                            Title = "The Housemaid"
+                        },
+                        new
+                        {
+                            BookId = 4,
+                            AuthorId = 4,
+                            SubTitle = "A Robert Hunter Thriller",
+                            Title = "The Crucifix Killer"
+                        });
                 });
 
             modelBuilder.Entity("QuipuSolution.Domain.Entities.Book", b =>

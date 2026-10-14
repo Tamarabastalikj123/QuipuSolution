@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using QuipuSolution.Domain.Entities;
+﻿using QuipuSolution.Domain.Entities;
 
 namespace QuipuSolution.Application.Contracts.Repository.Books
 {
