@@ -3,8 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using QuipuSolution.Application.Contracts.Repository.Authors;
 using QuipuSolution.Application.Contracts.Repository.Books;
-using QuipuSolution.Application.Contracts.Services;
-using QuipuSolution.Application.Service.Books;
+using QuipuSolution.Application;
 using QuipuSolution.ExceptionHandling;
 using QuipuSolution.Infrastructure.Persistence;
 using QuipuSolution.Infrastructure.Repositories;
@@ -58,7 +57,9 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddDbContext<QuipuSolutionDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddScoped<IBookService, BookService>();
+// CQRS (MediatR handlers + validation pipeline), validators and mapper
+builder.Services.AddApplication();
+
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
 

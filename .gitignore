@@ -361,3 +361,5 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Duende IdentityServer signing keys (private keys - never commit)
+QuipuSolution.IdentityServer/keys/

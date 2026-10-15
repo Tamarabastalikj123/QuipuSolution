@@ -44,10 +44,6 @@ namespace QuipuSolution.Infrastructure.Repositories
         {
             _context.Books.Remove(book);
             await _context.SaveChangesAsync(cancellationToken);
-            {
-                _context.Books.Remove(book);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
         }
     }
 }
